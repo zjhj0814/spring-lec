@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="hello.core.scope.SingletonWithPrototypeTest1" tests="2" skipped="0" failures="0" errors="0" timestamp="2024-01-27T08:16:40" hostname="JEONG20220317" time="0.454">
+  <properties/>
+  <testcase name="prototypeFind()" classname="hello.core.scope.SingletonWithPrototypeTest1" time="0.411"/>
+  <testcase name="singletonClientUsePrototype()" classname="hello.core.scope.SingletonWithPrototypeTest1" time="0.039"/>
+  <system-out><![CDATA[PrototypeBean.init hello.core.scope.SingletonWithPrototypeTest1$PrototypeBean@47dbb1e2
+PrototypeBean.init hello.core.scope.SingletonWithPrototypeTest1$PrototypeBean@495083a0
+PrototypeBean.init hello.core.scope.SingletonWithPrototypeTest1$PrototypeBean@7cbee484
+PrototypeBean.init hello.core.scope.SingletonWithPrototypeTest1$PrototypeBean@62923ee6
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
