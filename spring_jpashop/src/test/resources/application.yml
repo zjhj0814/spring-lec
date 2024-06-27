@@ -1,0 +1,21 @@
+spring:
+#  datasource:
+#    url: jdbc:h2:mem:testdb
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+#  properties:
+#    hibernate:
+#      #show_sql: true
+#      format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace
+#스프링에서는 주석처리를 하면 안 되지만,
+#스프링 부트에서는 기본적으로 별도의 설정이 없으면 메모리 모드로 돌려버리므로 주석 처리 가능!
