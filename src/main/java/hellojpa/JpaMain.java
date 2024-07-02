@@ -2,6 +2,7 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class JpaMain {
@@ -45,6 +46,56 @@ public class JpaMain {
                     .setMaxResults(8)
                     .getResultList();
             */
+
+            /* 엔티티 상태
+            //비영속
+            Member member = new Member();
+            member.setId(101L);
+            member.setName("HelloJPA");
+            //영속
+            System.out.println("===BEFORE===");
+            em.persist(member);
+            System.out.println("===AFTER===");
+            */
+            
+            /* 1차 캐시
+            Member findMember1 = em.find(Member.class, 101L);
+            Member findMember2 = em.find(Member.class, 101L);
+            System.out.println("result = " +(findMember1 == findMember2));
+            */
+
+            /* 트랜잭션을 지원하는 쓰기 지연
+            Member member1 = new Member(150L, "A");
+            Member member2 = new Member(160L, "B");
+
+            em.persist(member1);
+            em.persist(member2);
+            System.out.println("====================");
+            */
+
+            /* dirty checking
+            Member member1 = new Member(150L, "A");
+            em.persist(member1);
+            Member member = em.find(Member.class, 150L);
+            member.setName("ZZZZ");
+            //em.persist(member); 해당 코드를 통해 얻을 수 있는 이득은 아무것도 없다
+            //안 좋은 예시 : if(member.getName().equals("ZZZZ")) em.update(member);
+            */
+
+            /* flush
+            Member member = new Member(200L, "member200");
+            em.persist(member);
+            em.flush();
+            System.out.println("===========");
+            */
+
+            /*
+            Member member = em.find(Member.class, 150L);
+            member.setName("AAAAA");
+            //1. em.detach(member);
+            //2. em.clear();
+            */
+
             tx.commit();
         } catch(Exception e){
             tx.rollback();
