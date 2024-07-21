@@ -2,11 +2,12 @@ package hellojpa.domain;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Member {
+public class Member extends BaseEntity{
     @Id @Column(name = "MEMBER_ID")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
