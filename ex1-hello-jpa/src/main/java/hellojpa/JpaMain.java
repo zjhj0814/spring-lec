@@ -1,6 +1,7 @@
 package hellojpa;
 
 import jakarta.persistence.*;
+import org.hibernate.Hibernate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -96,6 +97,7 @@ public class JpaMain {
             //2. em.clear();
             */
 
+            /*
             Member_1 member = new Member_1();
             member.setUsername("member1");
             em.persist(member);
@@ -105,14 +107,127 @@ public class JpaMain {
             team.getMembers().add(member);
 
             em.persist(team);
+            */
+
+            /*
+            Member member = em.find(Member.class, 1L);
+            printMemberAndTeam(member);
+             */
+    
+            /*
+            프록시
+            Member member1 = new Member();
+            member1.setUsername("member1");
+            em.persist(member1);
+
+            Member member2 = new Member();
+            member2.setUsername("member2");
+            em.persist(member2);
+
+            em.flush();
+            em.clear();
+
+            Member m1 = em.find(Member.class, member1.getId());
+            System.out.println("m1 = " + m1.getClass());
+
+            Member m2 = em.getReference(Member.class, member2.getId());
+            System.out.println("m2 = " + m2.getClass());
+
+            //만약 영속성 컨텍스트를 꺼버린다면? -> 프록시 초기화 실패(no Session : 영속성 컨텍스트가 없음)
+            //em.detach(m2);
+            //em.close();
+            //em.clear();
+            m2.getUsername();
+            System.out.println("m2 = " + m2.getUsername());
+
+            //Member refMember = em.find(Member.class, member2.getId());
+            //System.out.println("refMember = " + refMember.getClass());
+            //프록시로 한번 조회하면 em.find() 후 == 해도 맞추기 위해
+            //System.out.println("refMember == m2 " + (refMember == m2));
+
+            Member reference = em.getReference(Member.class, member1.getId());
+            System.out.println("reference = " + reference.getClass());
+            System.out.println("a == a: " + (m1 == reference));
+
+            Hibernate.initialize(reference); //프록시 강제 초기화
+            System.out.println("isLoaded = " + emf.getPersistenceUnitUtil().isLoaded(m2)); //프록시 인스턴스의 초기화 여부 확인
+
+            logic(m1, m2);
+            */
+
+            /*
+            즉시 로딩 및 지연 로딩
+            Team team = new Team();
+            team.setName("teamA");
+            em.persist(team);
+
+            Team teamB = new Team();
+            teamB.setName("teamB");
+            em.persist(teamB);
+
+            Member member1 = new Member();
+            member1.setUsername("member1");
+            member1.setTeam(team);
+            em.persist(member1);
+
+            Member member2 = new Member();
+            member2.setUsername("member2");
+            member2.setTeam(teamB);
+            em.persist(member2);
+
+            em.flush();
+            em.clear();
+
+            List<Member> members = em.createQuery("select m from Member m join fetch m.team", Member.class)
+                    .getResultList(); //select * from Member
+
+            Member m = em.find(Member.class, member1.getId());
+            System.out.println("m = " + m.getTeam().getClass());
+
+            System.out.println("===========");
+            m.getTeam(); //프록시를 가져오기 때문에 초기화 X
+            m.getTeam().getName(); //실제 team을 사용하는 시점에 초기화 O
+            System.out.println("===========");
+             */
+
+            Child child1 = new Child();
+            Child child2 = new Child();
+
+            Parent parent = new Parent();
+            parent.addChild(child1);
+            parent.addChild(child2);
+
+            //CascadeType.ALL
+            //em.persist(child1);
+            //em.persist(child2);
+            em.persist(parent);
+
+            em.flush();
+            em.clear();
+
+            Parent findParent = em.find(Parent.class, parent.getId());
+            findParent.getChildList().remove(0);
 
             tx.commit();
         } catch(Exception e){
             tx.rollback();
+            e.printStackTrace();
         } finally {
             em.close(); //계속 데이터베이스 연결중
         }
-
         emf.close();
+    }
+
+    private static void logic(Member m1, Member m2) {
+        System.out.println("m1 == m2 "+(m1 instanceof Member));
+        System.out.println("m1 == m2 "+(m2 instanceof Member));
+    }
+
+    private static void printMemberAndTeam(Member member) {
+        String username = member.getUsername();
+        System.out.println("username = " + username);
+
+        Team team = member.getTeam();
+        System.out.println("team = " + team);
     }
 }
