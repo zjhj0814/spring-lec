@@ -5,6 +5,7 @@ import org.hibernate.Hibernate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class JpaMain {
 
@@ -190,6 +191,7 @@ public class JpaMain {
             System.out.println("===========");
              */
 
+            /*
             Child child1 = new Child();
             Child child2 = new Child();
 
@@ -207,6 +209,70 @@ public class JpaMain {
 
             Parent findParent = em.find(Parent.class, parent.getId());
             findParent.getChildList().remove(0);
+            */
+
+            /*
+            Address address = new Address("city", "street", "1001");
+
+            Member member = new Member();
+            member.setUsername("member1");
+            member.setHomeAddress(address);
+            em.persist(member);
+
+            Address copyAddress = new Address(address.getCity(), address.getCity(), address.getStreet());
+
+            Member member2 = new Member();
+            member2.setUsername("member2");
+            member2.setHomeAddress(copyAddress);
+            em.persist(member2);
+
+            //member.getHomeAddress().setCity("newCity");
+
+            Address newAddress = new Address("NewCity", address.getStreet(), address.getZipcode());
+            member.setHomeAddress(newAddress);
+             */
+
+            Member member = new Member();
+            member.setUsername("member1");
+            member.setHomeAddress(new Address("homeCity","street","10000"));
+
+            member.getFavoriteFoods().add("치킨");
+            member.getFavoriteFoods().add("족발");
+            member.getFavoriteFoods().add("피자");
+
+            member.getAddressHistory().add(new AddressEntity("old1","street","10000"));
+            member.getAddressHistory().add(new AddressEntity("old1","street","10000"));
+
+            em.persist(member);
+
+            em.flush();
+            em.clear();
+
+            System.out.println("=========START========");
+            Member findMember = em.find(Member.class, member.getId());
+
+            /*
+            List<Address> addressHistory = findMember.getAddressHistory();
+            for(Address address : addressHistory){
+                System.out.println("address = " + address.getCity());
+            }
+
+            Set<String> favoriteFoods = findMember.getFavoriteFoods();
+            for (String favoriteFood : favoriteFoods){
+                System.out.println("favoriteFood = " + favoriteFood);
+            }
+            */
+
+            //findMember.getHomeAddress().setCity("newCity"); 값 타입은 불변객체로
+            //homeCity -> newCity
+            Address a = findMember.getHomeAddress();
+            findMember.setHomeAddress(new Address("newCity",a.getStreet(),a.getZipcode()));
+            //치킨 -> 한식
+            findMember.getFavoriteFoods().remove("치킨");
+            findMember.getFavoriteFoods().add("한식");
+            //old1->new1
+            findMember.getAddressHistory().remove(new AddressEntity("old1","street","10000")); //equals, hash 제대로 구현해야 함
+            findMember.getAddressHistory().add(new AddressEntity("new1","street","10000"));
 
             tx.commit();
         } catch(Exception e){
