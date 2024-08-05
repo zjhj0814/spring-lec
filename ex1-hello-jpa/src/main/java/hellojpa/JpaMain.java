@@ -1,6 +1,9 @@
 package hellojpa;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Hibernate;
 
 import java.util.Arrays;
@@ -232,6 +235,7 @@ public class JpaMain {
             member.setHomeAddress(newAddress);
              */
 
+            /*
             Member member = new Member();
             member.setUsername("member1");
             member.setHomeAddress(new Address("homeCity","street","10000"));
@@ -251,7 +255,6 @@ public class JpaMain {
             System.out.println("=========START========");
             Member findMember = em.find(Member.class, member.getId());
 
-            /*
             List<Address> addressHistory = findMember.getAddressHistory();
             for(Address address : addressHistory){
                 System.out.println("address = " + address.getCity());
@@ -261,7 +264,6 @@ public class JpaMain {
             for (String favoriteFood : favoriteFoods){
                 System.out.println("favoriteFood = " + favoriteFood);
             }
-            */
 
             //findMember.getHomeAddress().setCity("newCity"); 값 타입은 불변객체로
             //homeCity -> newCity
@@ -273,6 +275,31 @@ public class JpaMain {
             //old1->new1
             findMember.getAddressHistory().remove(new AddressEntity("old1","street","10000")); //equals, hash 제대로 구현해야 함
             findMember.getAddressHistory().add(new AddressEntity("new1","street","10000"));
+            */
+
+            /* JPQL
+            List<Member> result = em.createQuery(
+                    "select m From Member m where m.username like '%kim%'",
+                    Member.class).getResultList();
+            for(Member member : result){
+                System.out.println("member = " + member);
+            } */
+
+            /* Criteria
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> query = cb.createQuery(Member.class);
+
+            Root<Member> m = query.from(Member.class);
+            CriteriaQuery<Member> cq = query.select(m);
+
+            String username = "dsafas";
+            if(username != null){
+                cq = cq.where(cb.equal(m.get("username"), "kim"));
+            }
+            List<Member> resultList = em.createQuery(cq).getResultList(); */
+
+            /* Native Query
+            em.createNativeQuery("select MEMBER_ID, city, street, USERNAME from MBR").getResultList(); */
 
             tx.commit();
         } catch(Exception e){
