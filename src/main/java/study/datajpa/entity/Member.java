@@ -19,15 +19,14 @@ public class Member {
     public Member(String username) {
         this.username = username;
     }
-
     public Member(String username, int age, Team team) {
         this.username = username;
         this.age = age;
         if(team != null){
             changeTeam(team);
         }
+        //일단 team이 null이면 무시하기
     }
-
     public void changeUsername(String username){
         this.username = username;
     }

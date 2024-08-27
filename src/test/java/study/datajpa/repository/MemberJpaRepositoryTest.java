@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional //같은
-@Rollback(value = false) //우리 눈에 보고싶으면
+@Rollback(value = false) //우리 눈에 보고싶으면, commit
 class MemberJpaRepositoryTest {
     @Autowired
     MemberJpaRepository memberJpaRepository;
