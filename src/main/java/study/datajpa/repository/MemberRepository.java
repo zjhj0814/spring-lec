@@ -1,8 +1,12 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
@@ -12,7 +16,6 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //List<Member> findByUsername(String username); //구현하지 않아도 동작함 --> 쿼리 메소드 기능
-
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
     List<Member> findTop3HelloBy(); //전체 조회
     @Query(name = "Member.findByUsername")
@@ -28,5 +31,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findListByUsername(String username); //전체 조회
     Member findMemberByUsername(String username); //단건 조회
     Optional<Member> findOptionalByUsername(String username); //Optional 조회
-
+    @Query(value = "select m from Member m left join m.team t",
+            countQuery = "select count(m.username) from Member m")
+    Page<Member> findByAge(int age, Pageable pageable); //Pageable은 page에 대한 정보
+    //Slice<Member> findByAge(int age, Pageable pageable); //Pageable은 page에 대한 정보
+    //List<Member> findByAge(int age, Pageable pageable); //Pageable은 page에 대한 정보
 }

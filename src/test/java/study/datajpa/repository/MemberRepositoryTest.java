@@ -3,6 +3,7 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.*;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -160,5 +161,41 @@ class MemberRepositoryTest {
         //System.out.println("m = " + m);
         //Optional<Member> op = memberRepository.findOptionalByUsername("AAA");
         //단건 조회 둘 다 두개 조회돼서 에러
+    }
+
+    @Test
+    public void paging(){
+        //given
+        memberRepository.save(new Member("member1",10));
+        memberRepository.save(new Member("member2",10));
+        memberRepository.save(new Member("member3",10));
+        memberRepository.save(new Member("member4",10));
+        memberRepository.save(new Member("member5",10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        //when
+        //알아서 totalCount 쿼리까지 날려줌
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+        //Slice<Member> page = memberRepository.findByAge(age, pageRequest); //limit+1해서 1개 더 가져옴, totalCount x
+        //List<Member> page = memberRepository.findByAge(age, pageRequest); //몇개 더 있고 없고 상관 없어! 그냥 페이지 상관없이 데이터만 가져와
+
+        // then
+        List<Member> content = page.getContent();
+        long totalElements = page.getTotalElements(); //JPQL totalcount와 동일
+
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+        assertThat(page.getNumber()).isEqualTo(0);
+
     }
 }
