@@ -1,5 +1,7 @@
 package study.datajpa.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,10 +20,12 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-@Rollback(value = false)
+@Rollback(value = true)
 class MemberRepositoryTest {
     @Autowired MemberRepository memberRepository;
     @Autowired TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void testMember(){
@@ -178,8 +182,11 @@ class MemberRepositoryTest {
         //when
         //알아서 totalCount 쿼리까지 날려줌
         Page<Member> page = memberRepository.findByAge(age, pageRequest);
+        //Page<Member> page = memberRepository.findTop3ByAge(age); 페이징말고 단순히 앞의 3건만 조회하고 싶음
         //Slice<Member> page = memberRepository.findByAge(age, pageRequest); //limit+1해서 1개 더 가져옴, totalCount x
         //List<Member> page = memberRepository.findByAge(age, pageRequest); //몇개 더 있고 없고 상관 없어! 그냥 페이지 상관없이 데이터만 가져와
+
+        Page<MemberDto> toMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null)); //API로 반환 가능
 
         // then
         List<Member> content = page.getContent();
@@ -198,4 +205,95 @@ class MemberRepositoryTest {
         assertThat(page.getNumber()).isEqualTo(0);
 
     }
+
+    @Test
+    public void bulkUpdate(){
+        //given
+        memberRepository.save(new Member("member1",10));
+        memberRepository.save(new Member("member2",19));
+        memberRepository.save(new Member("member3",20));
+        memberRepository.save(new Member("member4",21));
+        memberRepository.save(new Member("member5",40));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20);
+
+        //영속성 컨텍스트 초기화
+        //em.flush();
+        //em.clear();
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member = result.get(0);
+        System.out.println("member = " + member);
+        //save할 때 올라간 영속성 컨텍스트에서 member5를 가져오므로, DB와 나이 불일치
+
+        //then
+        assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy(){
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+        em.flush();
+        em.clear();
+
+        //when
+        //select Member 1 Team N = 1 + N
+        //List<Member> members = memberRepository.findAll();
+        List<Member> members = memberRepository.findNamedEntityGraphByUsername("member1");
+        //List<Member> members = memberRepository.findMemberFetchJoin();
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass());
+            System.out.println("member.teamName = " + member.getTeam().getName());
+        }
+
+        //then
+    }
+
+    @Test
+    public void queryHint(){
+        //given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        //Member findMember = memberRepository.findById(member1.getId()).get(); //실무에서는 바로 get 쓰면 안 됨
+        Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        findMember.setUsername("member2");
+        em.flush();
+        
+    }
+
+    @Test
+    public void lock(){
+        //given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        //Member findMember = memberRepository.findById(member1.getId()).get(); //실무에서는 바로 get 쓰면 안 됨
+        List<Member> findMember = memberRepository.findLockByUsername("member1");
+    }
+
+    @Test
+    public void callCustom(){
+        List<Member> result = memberRepository.findMemberCustom();
+    }
+
+
 }
