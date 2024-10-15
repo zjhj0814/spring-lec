@@ -3,7 +3,8 @@ package study.querydsl;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.assertj.core.api.Assertions;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
-import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import java.util.List;
@@ -91,6 +91,7 @@ public class QuerydslBasicTest {
                 .fetch();
         Member fetchOne = queryFactory
                 .selectFrom(member)
+                .where(member.username.eq("member1"))
                 .fetchOne();
         Member fetchFirst = queryFactory
                 .selectFrom(member)
@@ -228,8 +229,9 @@ public class QuerydslBasicTest {
                 //.join(member.team, team).where(team.name.eq("teamA"))
                 //.join(member.team, team).on(team.name.eq("teamA"))
                 .leftJoin(member.team, team)
-                //.on(team.name.eq("teamA")) //팀 이름이 teamA인 것만 가져오기
+                .on(team.name.eq("teamA")) //팀 이름이 teamA인 것만 가져오기
                 .fetch();
+
         for (Tuple tuple : result) {
             System.out.println("tuple = " + tuple);
         }
@@ -256,4 +258,38 @@ public class QuerydslBasicTest {
             System.out.println("tuple = " + tuple);
         }
     }
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+    @Test
+    public void fetchJoinNo(){
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("패치 조인 미적용").isFalse();
+        //해당 메소드를 실행했을 때 이미 로딩된 엔티티인지 아직 초기화가 안된 엔티티인지 알려줌
+    }
+
+    @Test
+    public void fetchJoinUse(){
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("패치 조인 적용").isTrue();
+        //해당 메소드를 실행했을 때 이미 로딩된 엔티티인지 아직 초기화가 안된 엔티티인지 알려줌
+    }
+
 }
